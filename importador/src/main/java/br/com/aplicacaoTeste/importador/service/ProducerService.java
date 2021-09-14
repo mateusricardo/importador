@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ProducerService {
@@ -35,6 +32,12 @@ public class ProducerService {
                 filmes.addAll(mapFilmesPorProdutor.get(movieProducer.getProducer()));
             }
             filmes.add(movieProducer.getMovie());
+            Collections.sort(filmes, new Comparator<Movie>() {
+                @Override
+                public int compare(Movie o1, Movie o2) {
+                    return o1 != null && o2 != null ? o1.getYear().compareTo(o2.getYear()) : 0;
+                }
+            });
             mapFilmesPorProdutor.put(movieProducer.getProducer(), filmes);
         }
         return popularJson(mapFilmesPorProdutor);
@@ -102,12 +105,20 @@ public class ProducerService {
         for (Map.Entry<Producer, List<Movie>> producerEntry : mapFilmesPorProdutor.entrySet()) {
             Movie maisAntigo = null;
             Movie maisNovo = null;
+            Movie movieAnterior = null;
+            Integer diferenca = 0;
             for (Movie movie : producerEntry.getValue()) {
-                if (movie.getWinner() && (maisAntigo == null || (!movie.equals(maisAntigo) && movie.getYear().compareTo(maisAntigo.getYear()) < 0))) {
-                    maisAntigo = movie;
-                }
-                if (movie.getWinner() && (maisNovo == null || (!movie.equals(maisNovo) && movie.getYear().compareTo(maisNovo.getYear()) > 0))) {
-                    maisNovo = movie;
+                if (movie.getWinner()) {
+                    if (maisNovo == null || (!movie.equals(maisNovo) && movie.getYear().compareTo(maisNovo.getYear()) > 0)) {
+                        maisNovo = movie;
+                    }
+                    if (movieAnterior != null && maisNovo.getYear() - movieAnterior.getYear() > diferenca) {
+                        maisAntigo = movieAnterior;
+                    } else if (maisAntigo == null) {
+                        maisAntigo = movie;
+                    }
+                    diferenca = maisNovo.getYear() - maisAntigo.getYear();
+                    movieAnterior = movie;
                 }
             }
             filmesPorProdutor.add(new VoFilmePorProdutor(producerEntry.getKey(), maisAntigo, maisNovo));
