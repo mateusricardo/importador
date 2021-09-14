@@ -109,13 +109,15 @@ public class ProducerService {
             Integer diferenca = 0;
             for (Movie movie : producerEntry.getValue()) {
                 if (movie.getWinner()) {
-                    if (maisNovo == null || (!movie.equals(maisNovo) && movie.getYear().compareTo(maisNovo.getYear()) > 0)) {
+                    if (movieAnterior != null && movie.getYear() - movieAnterior.getYear() > diferenca) {
                         maisNovo = movie;
-                    }
-                    if (movieAnterior != null && maisNovo.getYear() - movieAnterior.getYear() > diferenca) {
                         maisAntigo = movieAnterior;
-                    } else if (maisAntigo == null) {
+                    }
+                    if (maisAntigo == null) {
                         maisAntigo = movie;
+                    }
+                    if (maisNovo == null) {
+                        maisNovo = movie;
                     }
                     diferenca = maisNovo.getYear() - maisAntigo.getYear();
                     movieAnterior = movie;
